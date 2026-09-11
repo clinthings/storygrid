@@ -14,9 +14,18 @@ export default function ImageUploader({ value, onChange }) {
     const handleFile = async (file) => {
         if (!file || !file.type.startsWith('image/')) return;
         setUploading(true);
-        const item = await uploadMedia(file);
-        onChange(item.url);
-        setUploading(false);
+        try {
+            const item = await uploadMedia(file);
+            if (!item?.url) {
+                throw new Error('Upload completed but no image URL was returned.');
+            }
+            onChange(item.url);
+        } catch (error) {
+            console.error('Image upload failed:', error);
+            alert(`Image upload failed: ${error.message || 'Unknown error'}`);
+        } finally {
+            setUploading(false);
+        }
     };
 
     const handleDrop = (e) => {

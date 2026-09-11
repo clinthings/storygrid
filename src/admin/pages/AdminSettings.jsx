@@ -6,8 +6,6 @@ export default function AdminSettings() {
     const [saved, setSaved] = useState(false);
     const [siteName, setSiteName] = useState(localStorage.getItem('sg_site_name') || 'STORYGRID');
     const [siteTagline, setSiteTagline] = useState(localStorage.getItem('sg_site_tagline') || 'Premium Editorial Platform');
-    const [adminUser, setAdminUser] = useState('');
-    const [adminPass, setAdminPass] = useState('');
 
     const handleSave = (e) => {
         e.preventDefault();
@@ -43,10 +41,9 @@ export default function AdminSettings() {
                 <div className="rounded-2xl p-6 space-y-4"
                     style={{ background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.07)' }}>
                     <h2 className="text-sm font-bold uppercase tracking-widest text-white/40">Authentication</h2>
-                    <p className="text-xs text-white/30">Set <code className="text-white/50">VITE_ADMIN_USER</code> and <code className="text-white/50">VITE_ADMIN_PASS</code> in your <code className="text-white/50">.env</code> file to override the default credentials. This is the recommended approach for production.</p>
+                    <p className="text-xs text-white/30">Production admin access is managed through Supabase Auth and the profiles table. Do not store admin credentials in browser code.</p>
                     <div className="p-4 rounded-xl text-xs font-mono" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }}>
-                        VITE_ADMIN_USER=admin<br />
-                        VITE_ADMIN_PASS=your_secure_password
+                        Supabase Auth + profiles.role = admin/editor
                     </div>
                 </div>
 

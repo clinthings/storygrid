@@ -3,12 +3,12 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useCms } from '../../lib/useCms';
 import { FileText, BookMarked, Archive, Star, FolderOpen, PenSquare, ArrowUpRight } from 'lucide-react';
-// eslint-disable-next-line no-unused-vars
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 
-function StatCard({ label, value, icon: Icon, color, href }) {
+function StatCard({ label, value, icon, color, href }) {
+    const Icon = icon;
     const card = (
-        <motion.div
+        <Motion.div
             whileHover={{ y: -2 }}
             className="p-6 rounded-2xl flex items-start justify-between group"
             style={{ background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.07)' }}>
@@ -19,7 +19,7 @@ function StatCard({ label, value, icon: Icon, color, href }) {
             <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${color}18`, border: `1px solid ${color}30` }}>
                 <Icon size={22} style={{ color }} />
             </div>
-        </motion.div>
+        </Motion.div>
     );
     return href ? <Link to={href}>{card}</Link> : card;
 }

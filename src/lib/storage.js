@@ -5,6 +5,8 @@
 const POSTS_KEY = 'storygrid_posts';
 const CATEGORIES_KEY = 'storygrid_categories';
 const MEDIA_KEY = 'storygrid_media';
+const EXPANDED_POSTS_KEY = 'storygrid_expanded_posts_v1';
+const EXPANDED_IMAGES_KEY = 'storygrid_expanded_images_v1';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -33,15 +35,184 @@ const DEFAULT_CATEGORIES = [
     { id: 'cat-business', name: 'Business', slug: 'business', description: 'Entrepreneurship and the digital economy.' },
     { id: 'cat-productivity', name: 'Productivity', slug: 'productivity', description: 'Focus, habits, and effective workflows.' },
     { id: 'cat-future', name: 'Future', slug: 'future', description: 'What comes next in work and society.' },
+    { id: 'cat-sports', name: 'Sports', slug: 'sports', description: 'Football, basketball, tennis, and the stories behind competition.' },
 ];
+
+const EXPANDED_STORIES = {
+    technology: {
+        image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1600',
+        titles: [
+            'How Nigerian Startups Are Building for the Next Million Users',
+            'The Quiet Rise of African Software Teams',
+            'What a Digital-First Nigeria Could Look Like',
+            'Why Local Data Matters in the AI Conversation',
+            'The New Tools Changing How Small Teams Work',
+            'Can Technology Close Nigeria\'s Distance Problem?',
+            'Inside the Push for More Homegrown Digital Products',
+            'The Practical Future of Mobile Payments',
+            'What Young Builders Want from Nigeria\'s Tech Ecosystem',
+            'Beyond the Hype: Making Technology Useful',
+        ],
+    },
+    education: {
+        image: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&q=80&w=1600',
+        titles: [
+            'The Teachers Finding New Ways to Keep Students Curious',
+            'What Better Reading Culture Could Unlock for Nigeria',
+            'Learning Beyond the Classroom',
+            'The Case for Practical Skills in Modern Education',
+            'How Parents Can Help Children Build Better Study Habits',
+            'Why Digital Access Is Now Part of the Education Debate',
+            'The Students Creating Their Own Learning Networks',
+            'Rethinking Success Beyond Examination Scores',
+            'What Nigerian Schools Can Learn from Community Libraries',
+            'The Future Belongs to Lifelong Learners',
+        ],
+    },
+    business: {
+        image: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&q=80&w=1600',
+        titles: [
+            'The Small Businesses Turning Customers into Communities',
+            'Why Nigerian Entrepreneurs Are Rethinking Growth',
+            'The New Rules of Trust in Online Commerce',
+            'How Better Bookkeeping Can Change a Growing Business',
+            'What Retailers Need to Know About the Next Consumer',
+            'The Opportunity in Nigeria\'s Everyday Services',
+            'How Founders Are Building More Resilient Companies',
+            'The Business Case for Serving Underserved Markets',
+            'What Customer Experience Looks Like on a Budget',
+            'From Side Hustle to Sustainable Enterprise',
+        ],
+    },
+    productivity: {
+        image: 'https://images.unsplash.com/photo-1456324504439-367cee3b3c32?auto=format&fit=crop&q=80&w=1600',
+        titles: [
+            'A Better Way to Plan a Demanding Week',
+            'Why Your Attention Is Your Most Valuable Resource',
+            'The Case for Doing Less, Better',
+            'How to Build Routines That Survive Busy Seasons',
+            'What Rest Teaches Us About Meaningful Work',
+            'The Simple Discipline of Finishing Well',
+            'How to Protect Deep Work in a Noisy World',
+            'When Productivity Advice Stops Being Helpful',
+            'The Value of Making Space for Reflection',
+            'Small Systems That Make Everyday Work Lighter',
+        ],
+    },
+    future: {
+        image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80&w=1600',
+        titles: [
+            'The Cities Preparing for a More Connected Future',
+            'What Climate Adaptation Means for Everyday Life',
+            'The Careers Emerging Around New Technologies',
+            'Why Adaptability May Become the Defining Skill',
+            'How Culture Shapes the Future We Choose',
+            'The Next Decade of Work Will Be More Human Than We Think',
+            'What Nigeria Can Build in the Age of Global Teams',
+            'The Questions We Should Ask Before Adopting New Tools',
+            'A More Local Vision of the Global Future',
+            'The Future Is Being Decided in Ordinary Places',
+        ],
+    },
+    sports: {
+        image: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&q=80&w=1600',
+        titles: [
+            'The New Generation Carrying Nigerian Football Forward',
+            'Why Grassroots Academies Matter More Than Ever',
+            'The Business of Building a Modern Sports Club',
+            'What Makes a Great Match Report Worth Reading',
+            'How Women\'s Sport Is Growing Its Audience',
+            'The Coaches Changing How Young Athletes Train',
+            'Football Supporters and the Culture of Belonging',
+            'What Nigerian Basketball Needs for Its Next Leap',
+            'The Long Road from Local Talent to Global Stage',
+            'Why the Best Sports Stories Are About More Than Results',
+        ],
+    },
+};
+
+const EXPANDED_IMAGES = [
+    'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=1600',
+    'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&q=80&w=1600',
+    'https://images.unsplash.com/photo-1556761175-4b46a572b786?auto=format&fit=crop&q=80&w=1600',
+    'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=1600',
+    'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=1600',
+    'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=1600',
+    'https://images.unsplash.com/photo-1504274066651-8d31a536b11a?auto=format&fit=crop&q=80&w=1600',
+    'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=80&w=1600',
+    'https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&q=80&w=1600',
+    'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=1600',
+    'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80&w=1600',
+    'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=1600',
+];
+
+function expandedImage(categoryIndex, storyIndex) {
+    return EXPANDED_IMAGES[(categoryIndex * 3 + storyIndex) % EXPANDED_IMAGES.length];
+}
+
+function addExpandedStories(categories) {
+    if (localStorage.getItem(EXPANDED_POSTS_KEY) === 'true') return;
+
+    const posts = readJSON(POSTS_KEY);
+    const now = Date.now();
+    const expandedPosts = Object.entries(EXPANDED_STORIES).flatMap(([slug, storySet], categoryIndex) => {
+        const category = categories.find(item => item.slug === slug);
+        if (!category) return [];
+
+        return storySet.titles.map((title, storyIndex) => {
+            const publishedAt = new Date(now - ((categoryIndex * 10 + storyIndex) * 60 * 60 * 1000)).toISOString();
+            const storySlug = slugify(title);
+            return {
+                id: uuid(),
+                title,
+                slug: storySlug,
+                excerpt: `A fresh StoryGrid perspective on ${category.name.toLowerCase()}, the people shaping it, and what readers should watch next.`,
+                content: `<p>${title} is part of a wider conversation about how people, communities, and institutions are changing.</p><p>Across Nigeria, practical choices are creating new possibilities. The details matter, but so do the people behind them.</p><p>Here is what to know, what to question, and what may come next.</p>`,
+                categoryId: category.id,
+                author: 'StoryGrid Editorial Desk',
+                featuredImage: expandedImage(categoryIndex, storyIndex),
+                imageAlt: `${category.name} story from StoryGrid`,
+                imageCaption: '',
+                status: 'published',
+                isFeatured: false,
+                publishedAt,
+                createdAt: publishedAt,
+                updatedAt: publishedAt,
+            };
+        });
+    });
+
+    writeJSON(POSTS_KEY, [...posts, ...expandedPosts]);
+    localStorage.setItem(EXPANDED_POSTS_KEY, 'true');
+}
+
+function repairExpandedStoryImages(categories) {
+    if (localStorage.getItem(EXPANDED_IMAGES_KEY) === 'true') return;
+
+    const posts = readJSON(POSTS_KEY);
+    let changed = false;
+    const nextPosts = posts.map(post => {
+        if (post.author !== 'StoryGrid Editorial Desk') return post;
+        const categoryIndex = Object.keys(EXPANDED_STORIES).findIndex(slug => categories.some(category => category.slug === slug && category.id === post.categoryId));
+        const storyIndex = categoryIndex >= 0 ? EXPANDED_STORIES[Object.keys(EXPANDED_STORIES)[categoryIndex]].titles.indexOf(post.title) : -1;
+        if (categoryIndex < 0 || storyIndex < 0) return post;
+        changed = true;
+        return { ...post, featuredImage: expandedImage(categoryIndex, storyIndex) };
+    });
+
+    if (changed) writeJSON(POSTS_KEY, nextPosts);
+    localStorage.setItem(EXPANDED_IMAGES_KEY, 'true');
+}
 
 // ── Seed initial data if storage is empty ─────────────────────────────────────
 
 export function seedIfEmpty() {
     // Seed categories
-    if (readJSON(CATEGORIES_KEY).length === 0) {
-        writeJSON(CATEGORIES_KEY, DEFAULT_CATEGORIES);
-    }
+    const existingCategories = readJSON(CATEGORIES_KEY);
+    const categories = existingCategories.length === 0
+        ? DEFAULT_CATEGORIES
+        : [...existingCategories, ...DEFAULT_CATEGORIES.filter(defaultCategory => !existingCategories.some(category => category.slug === defaultCategory.slug))];
+    writeJSON(CATEGORIES_KEY, categories);
 
     // Seed posts from the hardcoded dataset
     if (readJSON(POSTS_KEY).length === 0) {
@@ -135,6 +306,9 @@ export function seedIfEmpty() {
         ];
         writeJSON(POSTS_KEY, seedPosts);
     }
+
+    addExpandedStories(categories);
+    repairExpandedStoryImages(categories);
 }
 
 // ── Reading Time ──────────────────────────────────────────────────────────────
@@ -304,37 +478,21 @@ export const mediaService = {
     },
 };
 
-// ── Admin Auth ────────────────────────────────────────────────────────────────
-// Simple but non-trivial: credentials live in .env, not in the component.
-// To configure: VITE_ADMIN_USER and VITE_ADMIN_PASS in your .env file.
-// This is a client-side gate only. To upgrade to real auth, replace this service
-// with a Supabase/Firebase auth call.
-
-const SESSION_KEY = 'storygrid_admin_session';
+// ── Authentication boundary ───────────────────────────────────────────────────
+// Admin authentication is handled by Supabase Auth and enforced by database RLS.
+// Local browser auth is intentionally not used for production security.
 
 export const authService = {
-    ADMIN_USER: import.meta.env.VITE_ADMIN_USER || 'admin',
-    ADMIN_PASS: import.meta.env.VITE_ADMIN_PASS || 'storygrid2026',
-
-    login(username, password) {
-        if (username === this.ADMIN_USER && password === this.ADMIN_PASS) {
-            const session = { username, loggedAt: new Date().toISOString() };
-            sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
-            return true;
-        }
-        return false;
+    login() {
+        throw new Error('Admin authentication is handled by Supabase Auth. Configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
     },
     logout() {
-        sessionStorage.removeItem(SESSION_KEY);
+        return undefined;
     },
     isAuthenticated() {
-        return !!sessionStorage.getItem(SESSION_KEY);
+        return false;
     },
     getUser() {
-        try {
-            return JSON.parse(sessionStorage.getItem(SESSION_KEY));
-        } catch {
-            return null;
-        }
+        return null;
     },
 };

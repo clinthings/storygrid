@@ -9,7 +9,7 @@ import { motion } from 'framer-motion';
 export default function AdminLogin() {
     const { login } = useCms();
     const navigate = useNavigate();
-    const [user, setUser] = useState('');
+    const [email, setEmail] = useState('');
     const [pass, setPass] = useState('');
     const [showPass, setShowPass] = useState(false);
     const [error, setError] = useState('');
@@ -19,13 +19,18 @@ export default function AdminLogin() {
         e.preventDefault();
         setError('');
         setLoading(true);
-        await new Promise(r => setTimeout(r, 400)); // slight delay for UX
-        const ok = login(user, pass);
-        setLoading(false);
-        if (ok) {
-            navigate('/admin');
-        } else {
-            setError('Invalid credentials. Please try again.');
+
+        try {
+            const ok = await login(email, pass);
+            if (ok) {
+                navigate('/admin');
+                return;
+            }
+            setError('This account is not authorized for administrator access.');
+        } catch (submitError) {
+            setError(submitError?.message || 'Sign in failed. Please verify your Supabase configuration.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -57,19 +62,19 @@ export default function AdminLogin() {
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div>
                             <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-2">
-                                Username
+                                Admin Email
                             </label>
                             <input
-                                type="text"
-                                value={user}
-                                onChange={e => setUser(e.target.value)}
+                                type="email"
+                                value={email}
+                                onChange={e => setEmail(e.target.value)}
                                 className="w-full px-4 py-3 rounded-xl text-sm font-medium focus:outline-none transition-all"
                                 style={{
                                     background: 'rgba(255,255,255,0.05)',
                                     border: '1px solid rgba(255,255,255,0.1)',
                                     color: '#f0f0f5',
                                 }}
-                                placeholder="admin"
+                                placeholder="admin@storygrid.com"
                                 required
                             />
                         </div>
@@ -116,8 +121,8 @@ export default function AdminLogin() {
                     </form>
 
                     <p className="text-center text-xs text-white/30 mt-6">
-                        Default: admin / storygrid2026
-                        <br />Set <code className="text-white/50">VITE_ADMIN_USER</code> & <code className="text-white/50">VITE_ADMIN_PASS</code> in <code className="text-white/50">.env</code>
+                        Use your Supabase admin or editor account.
+                        <br />Admin access is managed in Supabase Auth and the profiles table.
                     </p>
                 </div>
             </motion.div>

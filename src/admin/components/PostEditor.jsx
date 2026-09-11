@@ -12,11 +12,13 @@ import Placeholder from '@tiptap/extension-placeholder';
 import CharacterCount from '@tiptap/extension-character-count';
 import { useCms } from '../../lib/useCms';
 import { slugify, calcReadingTime } from '../../lib/storage';
+import { isEditorContentEmpty } from '../../lib/editor';
+import { VideoEmbed, getEmbedUrl } from '../../lib/videoExtension';
 import ImageUploader from './ImageUploader';
 import {
     Bold, Italic, UnderlineIcon, Strikethrough, Heading2, Heading3,
     List, ListOrdered, Quote, AlignLeft, AlignCenter, AlignRight,
-    Link2, Image, Undo, Redo, Eye, Save, Send, X, ChevronDown, Star
+    Link2, Image, Video, Undo, Redo, Eye, Save, Send, X, ChevronDown, Star
 } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
@@ -46,7 +48,25 @@ function ToolbarDivider() {
     return <div className="w-px h-5 mx-1" style={{ background: 'rgba(255,255,255,0.1)' }} />;
 }
 
-function EditorToolbar({ editor }) {
+function VideoDialog({ onClose, onAdd }) {
+    const [url, setUrl] = useState('');
+    const [error, setError] = useState('');
+    const submit = (event) => {
+        event.preventDefault();
+        try { onAdd(url); onClose(); } catch (err) { setError(err.message); }
+    };
+    return <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4" role="dialog" aria-modal="true">
+        <form onSubmit={submit} className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0e0e14] p-6">
+            <div className="mb-5 flex items-center justify-between"><h2 className="text-xl font-bold">Add Video</h2><button type="button" onClick={onClose}><X size={18} className="text-white/50" /></button></div>
+            <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-white/40">Video URL</label>
+            <input autoFocus required value={url} onChange={e => setUrl(e.target.value)} placeholder="https://youtube.com/watch?v=..." className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none" />
+            {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+            <button className="mt-5 w-full rounded-xl bg-cyan-300 px-4 py-3 text-sm font-black text-black">Add Video</button>
+        </form>
+    </div>;
+}
+
+function EditorToolbar({ editor, onVideo }) {
     if (!editor) return null;
 
     const setLink = () => {
@@ -86,6 +106,7 @@ function EditorToolbar({ editor }) {
             <ToolbarDivider />
             <ToolbarBtn onClick={setLink} active={editor.isActive('link')} title="Insert Link"><Link2 size={14} /></ToolbarBtn>
             <ToolbarBtn onClick={addImage} title="Insert Image URL"><Image size={14} /></ToolbarBtn>
+            <ToolbarBtn onClick={onVideo} title="Insert Video"><Video size={14} /></ToolbarBtn>
         </div>
     );
 }
@@ -108,12 +129,15 @@ export default function PostEditor() {
     const [imageAlt, setImageAlt] = useState(existingPost?.imageAlt || '');
     const [imageCaption, setImageCaption] = useState(existingPost?.imageCaption || '');
     const [isFeatured, setIsFeatured] = useState(existingPost?.isFeatured || false);
+    const [isSponsored, setIsSponsored] = useState(existingPost?.isSponsored || false);
     const [status, setStatus] = useState(''); // '' | 'saving' | 'saved' | 'publishing' | 'published' | 'error'
     const [showPreview, setShowPreview] = useState(false);
+    const [showVideoDialog, setShowVideoDialog] = useState(false);
 
     // Auto-generate slug from title
     useEffect(() => {
         if (!slugEdited && title) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setSlug(slugify(title));
         }
     }, [title, slugEdited]);
@@ -127,6 +151,7 @@ export default function PostEditor() {
             TextAlign.configure({ types: ['heading', 'paragraph'] }),
             Placeholder.configure({ placeholder: 'Start writing your article here…' }),
             CharacterCount,
+            VideoEmbed,
         ],
         content: existingPost?.content || '',
         editorProps: {
@@ -135,6 +160,12 @@ export default function PostEditor() {
             },
         },
     });
+
+    useEffect(() => {
+        if (!editor) return;
+        const nextContent = existingPost?.content || '';
+        editor.commands.setContent(nextContent, false);
+    }, [editor, existingPost?.id, existingPost?.content]);
 
     const getFormData = useCallback(() => ({
         title,
@@ -146,14 +177,15 @@ export default function PostEditor() {
         imageAlt,
         imageCaption,
         isFeatured,
+        isSponsored,
         content: editor?.getHTML() || '',
-    }), [title, slug, excerpt, categoryId, author, featuredImage, imageAlt, imageCaption, isFeatured, editor]);
+    }), [title, slug, excerpt, categoryId, author, featuredImage, imageAlt, imageCaption, isFeatured, isSponsored, editor]);
 
     const validate = () => {
         if (!title.trim()) return 'Title is required.';
         if (!slug.trim()) return 'Slug is required.';
         if (!categoryId) return 'Please select a category.';
-        if (!editor || editor.getHTML() === '<p></p>') return 'Article content is required.';
+        if (!editor || isEditorContentEmpty(editor.getHTML())) return 'Article content is required.';
         return null;
     };
 
@@ -163,7 +195,7 @@ export default function PostEditor() {
         setStatus('saving');
         await new Promise(r => setTimeout(r, 300));
         const data = getFormData();
-        if (isEditing) { updatePost(id, data); } else { createPost(data); }
+        if (isEditing) { await updatePost(id, data); } else { await createPost(data); }
         setStatus('saved');
         setTimeout(() => setStatus(''), 3000);
     };
@@ -175,11 +207,11 @@ export default function PostEditor() {
         await new Promise(r => setTimeout(r, 400));
         const data = getFormData();
         if (isEditing) {
-            updatePost(id, data);
-            publishPost(id);
+            await updatePost(id, data);
+            await publishPost(id);
         } else {
-            const post = createPost(data);
-            publishPost(post.id);
+            const post = await createPost(data);
+            await publishPost(post.id);
         }
         setStatus('published');
         setTimeout(() => navigate('/admin/published'), 1500);
@@ -266,7 +298,7 @@ export default function PostEditor() {
                     {/* Rich Text Editor */}
                     <div className="rounded-xl overflow-hidden" style={{ background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.07)' }}>
                         <div className="p-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-                            <EditorToolbar editor={editor} />
+                            <EditorToolbar editor={editor} onVideo={() => setShowVideoDialog(true)} />
                         </div>
                         <div className="p-5">
                             <EditorContent editor={editor} />
@@ -316,6 +348,10 @@ export default function PostEditor() {
                                     <span className="text-sm font-medium text-white/80">Featured Story</span>
                                     <Star size={12} className="inline ml-1" style={{ color: '#f472b6' }} />
                                 </div>
+                            </label>
+                            <label className="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" checked={isSponsored} onChange={e => setIsSponsored(e.target.checked)} className="h-4 w-4 accent-cyan-400" />
+                                <span className="text-sm font-medium text-white/80">Sponsored content</span>
                             </label>
                         </div>
                     </div>
@@ -390,6 +426,10 @@ export default function PostEditor() {
                     </motion.div>
                 )}
             </AnimatePresence>
+            {showVideoDialog && <VideoDialog onClose={() => setShowVideoDialog(false)} onAdd={(url) => {
+                if (!getEmbedUrl(url)) throw new Error('Enter a valid YouTube or Vimeo URL.');
+                editor?.chain().focus().setVideoEmbed({ src: url }).run();
+            }} />}
         </div>
     );
 }
