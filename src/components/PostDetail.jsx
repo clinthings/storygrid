@@ -69,6 +69,7 @@ const PostDetail = ({ post, onBack, onPostClick, publishedPosts = [], categories
                     decoding="async"
                     variants={{ hidden: { scale: 1.08 }, show: { scale: 1 } }}
                     transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    style={{ objectPosition: 'center 35%' }}
                 />
                 <div className="absolute inset-0"
                     style={{ background: 'linear-gradient(to top, rgba(5,5,7,0.95) 0%, rgba(5,5,7,0.5) 40%, rgba(5,5,7,0.2) 100%)' }} />

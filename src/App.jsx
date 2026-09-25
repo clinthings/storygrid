@@ -231,7 +231,11 @@ function FeaturedHero({ post, onPostClick, categoryName }) {
           className="w-full h-full object-cover"
           fetchPriority="high"
           decoding="async"
-          style={{ transform: 'scale(1.08)', transformOrigin: 'center' }}
+          style={{
+            objectPosition: 'center 40%',
+            transform: 'scale(1.03)',
+            transformOrigin: 'center center',
+          }}
         />
         <div
           className="absolute inset-0"

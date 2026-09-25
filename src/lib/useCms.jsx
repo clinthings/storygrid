@@ -6,7 +6,9 @@ import React, { createContext, useContext, useState, useCallback, useEffect } fr
 import { postService, categoryService, mediaService, authService, seedIfEmpty } from './storage';
 import { supabase, isSupabaseConfigured } from './supabase';
 
-seedIfEmpty();
+if (!isSupabaseConfigured) {
+    seedIfEmpty();
+}
 
 const CmsContext = createContext(null);
 
@@ -117,9 +119,9 @@ async function updateAdminRoleState(setIsAdmin, setAuthUser) {
 }
 
 export function CmsProvider({ children }) {
-    const [posts, setPosts] = useState(() => postService.getAll().map(normalizePost));
-    const [categories, setCategories] = useState(() => categoryService.getAll().map(normalizeCategory));
-    const [media, setMedia] = useState(() => mediaService.getAll());
+    const [posts, setPosts] = useState(() => isSupabaseConfigured ? [] : postService.getAll().map(normalizePost));
+    const [categories, setCategories] = useState(() => isSupabaseConfigured ? [] : categoryService.getAll().map(normalizeCategory));
+    const [media, setMedia] = useState(() => isSupabaseConfigured ? [] : mediaService.getAll());
     const [isAdmin, setIsAdmin] = useState(false);
     const [authUser, setAuthUser] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -154,9 +156,20 @@ export function CmsProvider({ children }) {
             console.error('Media fetch failed:', mediaResult.error);
         }
 
-        setCategories((categoriesResult.data || []).map(normalizeCategory));
-        setPosts((postsResult.data || []).map(normalizePost));
-        setMedia((mediaResult.data || []).map(normalizeMedia));
+        const normalizedCategories = (categoriesResult.data || []).map(normalizeCategory);
+        const normalizedPosts = (postsResult.data || []).map(normalizePost);
+        const normalizedMedia = (mediaResult.data || []).map(normalizeMedia);
+
+        setCategories(normalizedCategories);
+        setPosts(normalizedPosts);
+        setMedia(normalizedMedia);
+
+        if (typeof window !== 'undefined' && isSupabaseConfigured) {
+            localStorage.setItem('storygrid_categories', JSON.stringify(categoriesResult.data || []));
+            localStorage.setItem('storygrid_posts', JSON.stringify(postsResult.data || []));
+            localStorage.setItem('storygrid_media', JSON.stringify(mediaResult.data || []));
+        }
+
         setLoading(false);
     }, [refreshFromLocal]);
 
