@@ -28,7 +28,7 @@ export function getPublicSiteUrl() {
   if (typeof window !== 'undefined' && window.location?.origin) {
     return window.location.origin;
   }
-  return 'https://storygrid-frex7ueow-story-grid1.vercel.app';
+  return 'https://storygrid-five.vercel.app';
 }
 
 export function requireSupabaseClient() {
