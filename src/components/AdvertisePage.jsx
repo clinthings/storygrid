@@ -9,6 +9,8 @@ const options = [
 ];
 
 export default function AdvertisePage() {
+    const recipientEmail = 'olubanjosegun818@gmail.com';
+
     const [form, setForm] = useState({
         name: '',
         email: '',
@@ -39,7 +41,7 @@ export default function AdvertisePage() {
             ].join('\n')
         );
 
-        window.location.href = `mailto:advertise@storygrid.example?subject=${subject}&body=${body}`;
+        window.location.href = `mailto:${recipientEmail}?subject=${subject}&body=${body}`;
     };
 
     return <main className="public-page min-h-screen bg-[#f5f6f8] pb-16 pt-28 text-[#172033] dark:bg-[#050507] dark:text-white">

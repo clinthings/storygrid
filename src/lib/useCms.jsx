@@ -22,6 +22,20 @@ function normalizeCategory(raw = {}) {
     };
 }
 
+export function normalizeFeaturedValue(raw = {}) {
+    return Boolean(raw.is_featured ?? raw.featured ?? raw.isFeatured ?? false);
+}
+
+export function sortPublishedPosts(posts = []) {
+    return [...posts]
+        .filter((post) => post.status === 'published')
+        .sort((a, b) => {
+            const featuredDelta = Number(Boolean(b.isFeatured)) - Number(Boolean(a.isFeatured));
+            if (featuredDelta !== 0) return featuredDelta;
+            return new Date(b.publishedAt || b.createdAt) - new Date(a.publishedAt || a.createdAt);
+        });
+}
+
 function normalizePost(raw = {}) {
     return {
         id: raw.id,
@@ -36,7 +50,7 @@ function normalizePost(raw = {}) {
         imageAlt: raw.image_alt || raw.imageAlt || '',
         imageCaption: raw.image_caption || raw.imageCaption || '',
         status: raw.status || 'draft',
-        isFeatured: Boolean(raw.is_featured ?? raw.isFeatured),
+        isFeatured: normalizeFeaturedValue(raw),
         isSponsored: Boolean(raw.is_sponsored ?? raw.isSponsored),
         publishedAt: raw.published_at || raw.publishedAt || null,
         createdAt: raw.created_at || raw.createdAt || new Date().toISOString(),
@@ -72,7 +86,7 @@ function toDbPost(data) {
         image_alt: data.imageAlt || '',
         image_caption: data.imageCaption || '',
         status: data.status || 'draft',
-        is_featured: Boolean(data.isFeatured),
+        is_featured: Boolean(data.isFeatured ?? data.featured),
         is_sponsored: Boolean(data.isSponsored),
         published_at: data.publishedAt || null,
     };
@@ -422,10 +436,7 @@ export function CmsProvider({ children }) {
         refreshFromLocal();
     }, [media, refreshFromLocal]);
 
-    const publishedPosts = posts
-        .filter(p => p.status === 'published')
-        .sort((a, b) => new Date(b.publishedAt || b.createdAt) - new Date(a.publishedAt || a.createdAt));
-
+    const publishedPosts = sortPublishedPosts(posts);
     const draftPosts = posts.filter(p => p.status === 'draft');
     const featuredPost = publishedPosts.find(p => p.isFeatured) || null;
 
