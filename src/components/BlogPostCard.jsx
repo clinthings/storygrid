@@ -21,7 +21,7 @@ const BlogPostCard = ({ post, onClick, featured = false, compact = false }) => {
         <Motion.article
             onClick={onClick}
             whileHover={{ y: -5 }}
-            className="public-card group relative flex h-full cursor-pointer select-none flex-col overflow-hidden rounded-[22px] border border-white/10 bg-[#09090d] p-2.5 sm:p-3"
+            className="public-card group relative flex h-full w-full min-w-0 cursor-pointer select-none flex-col overflow-hidden rounded-[22px] border border-white/10 bg-[#09090d] p-2.5 sm:p-3"
         >
             <div className="relative overflow-hidden rounded-[18px] bg-[#111]" style={{ aspectRatio: compact ? '1.85 / 1' : featured ? '16 / 9' : '4 / 3' }}>
                 <Motion.img

@@ -169,14 +169,15 @@ const PostDetail = ({ post, onBack, onPostClick, publishedPosts = [], categories
 
             {/* ── Related Posts ── */}
             {relatedPosts.length > 0 && (
-                <div className="mx-auto max-w-6xl border-t border-slate-200 px-6 py-12">
-                    <h2 className="mb-8 text-3xl font-black tracking-tighter text-[#111827]" style={{ fontFamily: '"Bebas Neue", Impact, sans-serif' }}>
+                <div className="mx-auto max-w-6xl border-t border-slate-200 px-4 py-10 sm:px-6 sm:py-12">
+                    <h2 className="mb-6 text-3xl font-black tracking-tighter text-[#111827] sm:mb-8" style={{ fontFamily: '"Bebas Neue", Impact, sans-serif' }}>
                         You May Also Like <span style={{ color: colors.text }}>· {catName}</span>
                     </h2>
-                    <div className="grid gap-8"
-                        style={{ gridTemplateColumns: `repeat(${Math.min(relatedPosts.length, 3)}, 1fr)` }}>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                         {relatedPosts.map(related => (
-                            <BlogPostCard key={related.id} post={related} onClick={() => onPostClick?.(related)} />
+                            <div key={related.id} className="min-w-0 w-full">
+                                <BlogPostCard post={related} onClick={() => onPostClick?.(related)} />
+                            </div>
                         ))}
                     </div>
                 </div>
