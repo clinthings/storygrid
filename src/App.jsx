@@ -327,22 +327,6 @@ function HomePage() {
   const [activeCategory, setActiveCategory] = useState('All');
 
   const categoryList = useMemo(() => ['All', ...categories.map((cat) => cat.name)], [categories]);
-
-  if (loading && publishedPosts.length === 0 && !featuredPost) {
-    return (
-      <>
-        <SeoMeta />
-        <PublicHeader searchQuery={searchQuery} onSearch={setSearchQuery} categories={categories} />
-        <main className="public-home pb-20 pt-24">
-          <div className="mx-auto max-w-7xl px-4 py-20 text-center">
-            <p className="text-xs font-black uppercase tracking-[0.24em] text-cyan-300">Loading stories…</p>
-          </div>
-        </main>
-        <PublicFooter categories={categories} />
-      </>
-    );
-  }
-
   const filteredPosts = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
 
@@ -365,6 +349,21 @@ function HomePage() {
       return haystack.includes(q);
     });
   }, [activeCategory, categories, publishedPosts, searchQuery]);
+
+  if (loading && publishedPosts.length === 0 && !featuredPost) {
+    return (
+      <>
+        <SeoMeta />
+        <PublicHeader searchQuery={searchQuery} onSearch={setSearchQuery} categories={categories} />
+        <main className="public-home pb-20 pt-24">
+          <div className="mx-auto max-w-7xl px-4 py-20 text-center">
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-cyan-300">Loading stories…</p>
+          </div>
+        </main>
+        <PublicFooter categories={categories} />
+      </>
+    );
+  }
 
   const heroPost = featuredPost || publishedPosts[0] || null;
   const secondaryPosts = filteredPosts.filter((post) => post.id !== heroPost?.id).slice(0, 3);
