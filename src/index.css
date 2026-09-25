@@ -156,21 +156,37 @@
 [data-storygrid-theme="dark"] .article-paper .text-slate-600,
 [data-storygrid-theme="dark"] .article-paper .text-slate-500,
 [data-storygrid-theme="dark"] .article-paper .text-slate-400 {
-  color: rgba(255, 255, 255, 0.72) !important;
+  color: rgba(255, 255, 255, 0.84) !important;
 }
 
 [data-storygrid-theme="dark"] .article-paper .prose,
+[data-storygrid-theme="dark"] .article-paper .prose * {
+  color: rgba(255, 255, 255, 0.94) !important;
+}
+
+[data-storygrid-theme="dark"] .article-paper .prose h1,
+[data-storygrid-theme="dark"] .article-paper .prose h2,
+[data-storygrid-theme="dark"] .article-paper .prose h3,
+[data-storygrid-theme="dark"] .article-paper .prose h4,
+[data-storygrid-theme="dark"] .article-paper .prose h5,
+[data-storygrid-theme="dark"] .article-paper .prose h6,
 [data-storygrid-theme="dark"] .article-paper .prose p,
 [data-storygrid-theme="dark"] .article-paper .prose li,
 [data-storygrid-theme="dark"] .article-paper .prose strong,
 [data-storygrid-theme="dark"] .article-paper .prose blockquote,
-[data-storygrid-theme="dark"] .article-paper .prose a,
-[data-storygrid-theme="dark"] .article-paper .prose figcaption {
-  color: rgba(255, 255, 255, 0.8) !important;
+[data-storygrid-theme="dark"] .article-paper .prose figcaption,
+[data-storygrid-theme="dark"] .article-paper .prose em,
+[data-storygrid-theme="dark"] .article-paper .prose span {
+  color: rgba(255, 255, 255, 0.94) !important;
 }
 
 [data-storygrid-theme="dark"] .article-paper .prose a {
-  color: #67e8f9 !important;
+  color: #7dd3fc !important;
+}
+
+[data-storygrid-theme="dark"] .article-paper .prose code,
+[data-storygrid-theme="dark"] .article-paper .prose pre {
+  color: rgba(255, 255, 255, 0.88) !important;
 }
 
 [data-storygrid-theme="dark"] .article-paper .border-slate-200 {

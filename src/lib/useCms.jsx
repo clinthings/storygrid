@@ -178,6 +178,11 @@ export function CmsProvider({ children }) {
 
         const hydrate = async () => {
             if (!isMounted) return;
+            if (isSupabaseConfigured) {
+                setPosts([]);
+                setCategories([]);
+                setMedia([]);
+            }
             await refreshFromSupabase();
             await updateAdminRoleState((next) => {
                 if (isMounted) { setIsAdmin(next); setAuthLoading(false); }

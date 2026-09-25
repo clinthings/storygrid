@@ -22,6 +22,15 @@ export const supabase = isSupabaseConfigured
     })
   : null;
 
+export function getPublicSiteUrl() {
+  const configuredUrl = (import.meta.env.VITE_SITE_URL || import.meta.env.VITE_PUBLIC_SITE_URL || '').trim().replace(/\/$/, '');
+  if (configuredUrl) return configuredUrl;
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin;
+  }
+  return 'https://storygrid-frex7ueow-story-grid1.vercel.app';
+}
+
 export function requireSupabaseClient() {
   if (!isSupabaseConfigured || !supabase) {
     throw new Error('StoryGrid requires VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY. Configure the environment before starting the app.');

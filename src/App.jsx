@@ -232,9 +232,9 @@ function FeaturedHero({ post, onPostClick, categoryName }) {
           fetchPriority="high"
           decoding="async"
           style={{
-            objectPosition: 'center 40%',
-            transform: 'scale(1.03)',
-            transformOrigin: 'center center',
+            objectPosition: 'center top',
+            transform: 'scale(1.04)',
+            transformOrigin: 'center top',
           }}
         />
         <div
@@ -320,13 +320,28 @@ function stripHtml(html = '') {
 }
 
 function HomePage() {
-  const { publishedPosts = [], categories = [], featuredPost } = useCms();
+  const { publishedPosts = [], categories = [], featuredPost, loading } = useCms();
   const navigate = useNavigate();
   const [selectedPost, setSelectedPost] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
 
   const categoryList = useMemo(() => ['All', ...categories.map((cat) => cat.name)], [categories]);
+
+  if (loading && publishedPosts.length === 0 && !featuredPost) {
+    return (
+      <>
+        <SeoMeta />
+        <PublicHeader searchQuery={searchQuery} onSearch={setSearchQuery} categories={categories} />
+        <main className="public-home pb-20 pt-24">
+          <div className="mx-auto max-w-7xl px-4 py-20 text-center">
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-cyan-300">Loading stories…</p>
+          </div>
+        </main>
+        <PublicFooter categories={categories} />
+      </>
+    );
+  }
 
   const filteredPosts = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -616,10 +631,10 @@ export default function App() {
             <Route path="/privacy" element={<PrivacyPolicyPage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
 
-            <Route path="/:categorySlug" element={<CategoryPage />} />
+            <Route path="/article/:slug" element={<ArticlePage />} />
             <Route path="/:categorySlug/:slug" element={<ArticlePage />} />
             <Route path="/category/:slug" element={<CategoryPage />} />
-            <Route path="/article/:slug" element={<ArticlePage />} />
+            <Route path="/:categorySlug" element={<CategoryPage />} />
 
             {/* ADMIN LOGIN */}
             <Route

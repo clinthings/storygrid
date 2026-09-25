@@ -1,8 +1,24 @@
-import { supabase } from './supabase';
+import { getPublicSiteUrl, supabase } from './supabase';
 
 export const readerAuthEnabled = Boolean(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY);
 const LOCAL_COMMENTS_KEY = 'storygrid_reader_comments';
 const LOCAL_SUBSCRIBERS_KEY = 'storygrid_newsletter_subscribers';
+const columnPresenceCache = new Map();
+
+async function tableHasColumn(tableName, columnName) {
+    const key = `${tableName}.${columnName}`;
+    if (columnPresenceCache.has(key)) return columnPresenceCache.get(key);
+
+    try {
+        const { error } = await supabase.from(tableName).select(columnName).limit(1);
+        const hasColumn = !error || !/Could not find the '.*' column|column .* does not exist/i.test(error.message);
+        columnPresenceCache.set(key, hasColumn);
+        return hasColumn;
+    } catch (error) {
+        columnPresenceCache.set(key, false);
+        return false;
+    }
+}
 
 function localComments() {
     try { return JSON.parse(localStorage.getItem(LOCAL_COMMENTS_KEY) || '[]'); } catch { return []; }
@@ -29,8 +45,43 @@ export function deleteLocalComment(id) {
 
 export async function signUpReader({ email, password, displayName }) {
     if (!readerAuthEnabled) throw new Error('Reader accounts require Supabase configuration.');
-    const { data, error } = await supabase.auth.signUp({ email: email.trim(), password, options: { data: { display_name: displayName.trim() } } });
+
+    const cleanEmail = String(email || '').trim();
+    const cleanPassword = String(password || '').trim();
+    const cleanDisplayName = String(displayName || '').trim();
+
+    if (!cleanDisplayName) throw new Error('Username is required.');
+    if (!cleanEmail) throw new Error('Email is required.');
+    if (!cleanPassword) throw new Error('Password is required.');
+    if (cleanPassword.length < 8) throw new Error('Password must be at least 8 characters.');
+
+    const { data, error } = await supabase.auth.signUp({
+        email: cleanEmail,
+        password: cleanPassword,
+        options: {
+            data: { display_name: cleanDisplayName },
+            emailRedirectTo: getPublicSiteUrl(),
+        },
+    });
+
     if (error) throw error;
+    if (!data?.user) throw new Error('Registration failed. Please try again.');
+
+    const profilePayload = {
+        id: data.user.id,
+        email: cleanEmail,
+        display_name: cleanDisplayName,
+        role: 'reader',
+    };
+
+    const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert(profilePayload, { onConflict: 'id' });
+
+    if (profileError) {
+        throw new Error('Registration failed. Please try again.');
+    }
+
     return data;
 }
 
@@ -65,13 +116,18 @@ export async function saveNotificationSubscription({ email, userId, enabled }) {
         localStorage.setItem(LOCAL_SUBSCRIBERS_KEY, JSON.stringify(existing ? subscribers.map(subscriber => subscriber.email === normalizedEmail ? { ...subscriber, ...next } : subscriber) : [...subscribers, next]));
         return next;
     }
+
     const values = {
         email: email.trim().toLowerCase(),
-        user_id: userId || null,
         subscribed_to_new_posts: enabled,
         subscribed_at: enabled ? new Date().toISOString() : null,
         unsubscribed_at: enabled ? null : new Date().toISOString(),
     };
+
+    if (userId && await tableHasColumn('email_subscribers', 'user_id')) {
+        values.user_id = userId;
+    }
+
     const { data, error } = await supabase.from('email_subscribers').upsert(values, { onConflict: 'email' }).select().single();
     if (error) throw error;
     return data;
@@ -114,21 +170,29 @@ export async function createComment({ postId, userId, displayName, content, noti
 
     const authorDisplayName = (profileData?.display_name || profileData?.email || displayName || 'Reader').trim().slice(0, 80);
 
-    const { data, error } = await supabase.from('comments').insert({
+    const commentValues = {
         post_id: postId,
-        user_id: userId,
         author_display_name: authorDisplayName,
         content: clean,
         status: 'pending',
-    }).select().single();
+    };
+
+    if (userId && await tableHasColumn('comments', 'user_id')) {
+        commentValues.user_id = userId;
+    }
+
+    const { data, error } = await supabase.from('comments').insert(commentValues).select().single();
     if (error) throw error;
-    if (notify) {
+    if (notify && userId && await tableHasColumn('comment_notification_preferences', 'user_id')) {
         await supabase.from('comment_notification_preferences').upsert({ post_id: postId, user_id: userId, enabled: true }, { onConflict: 'post_id,user_id' });
     }
     return data;
 }
 
 export async function getCommentPreference(postId, userId) {
+    if (!userId || !(await tableHasColumn('comment_notification_preferences', 'user_id'))) {
+        return false;
+    }
     const { data, error } = await supabase.from('comment_notification_preferences').select('enabled').eq('post_id', postId).eq('user_id', userId).maybeSingle();
     if (error) throw error;
     return data?.enabled || false;
