@@ -34,50 +34,6 @@ import AdvertisePage from './components/AdvertisePage';
 import PrivacyPolicyPage from './components/PrivacyPolicyPage';
 import { useTheme } from './lib/ThemeProvider';
 
-function SeoMeta({ post }) {
-  React.useEffect(() => {
-    const title = post ? `${post.title} | StoryGrid` : 'StoryGrid | Independent Stories and Ideas';
-    const description = post?.excerpt || 'Independent stories, ideas, and perspectives for a changing world.';
-    document.title = title;
-    const setMeta = (selector, attribute, value) => {
-      let element = document.head.querySelector(selector);
-      if (!element) { element = document.createElement('meta'); element.setAttribute(attribute, selector.includes('property') ? selector.match(/"([^"]+)"/)[1] : selector.match(/"([^"]+)"/)[1]); document.head.appendChild(element); }
-      element.setAttribute('content', value);
-    };
-    setMeta('meta[name="description"]', 'name', description);
-    setMeta('meta[property="og:title"]', 'property', title);
-    setMeta('meta[property="og:description"]', 'property', description);
-    setMeta('meta[property="og:type"]', 'property', post ? 'article' : 'website');
-    if (post?.featuredImage) setMeta('meta[property="og:image"]', 'property', post.featuredImage);
-    setMeta('meta[name="twitter:card"]', 'name', post?.featuredImage ? 'summary_large_image' : 'summary');
-    setMeta('meta[name="twitter:title"]', 'name', title);
-    setMeta('meta[name="twitter:description"]', 'name', description);
-    if (post?.featuredImage) setMeta('meta[name="twitter:image"]', 'name', post.featuredImage);
-    let canonical = document.head.querySelector('link[data-storygrid-canonical]');
-    if (!canonical) {
-      canonical = document.createElement('link');
-      canonical.dataset.storygridCanonical = 'true';
-      canonical.rel = 'canonical';
-      document.head.appendChild(canonical);
-    }
-    canonical.href = `${window.location.origin}${post?.slug ? `/article/${post.slug}` : window.location.pathname}`;
-    const existing = document.head.querySelector('script[data-storygrid-schema]');
-    if (existing) existing.remove();
-    if (post) {
-      const schema = document.createElement('script');
-      schema.type = 'application/ld+json';
-      schema.dataset.storygridSchema = 'true';
-      schema.textContent = JSON.stringify({ '@context': 'https://schema.org', '@type': 'Article', headline: post.title, description, image: post.featuredImage ? [post.featuredImage] : undefined, author: { '@type': 'Person', name: post.author || 'StoryGrid Editorial Desk' }, datePublished: post.publishedAt, mainEntityOfPage: window.location.href });
-      document.head.appendChild(schema);
-    }
-    return () => {
-      const schema = document.head.querySelector('script[data-storygrid-schema]');
-      if (schema) schema.remove();
-    };
-  }, [post]);
-  return null;
-}
-
 // Admin Components
 import { AdminLayout } from './admin/AdminLayout';
 import AdminLogin from './admin/pages/AdminLogin';
@@ -88,6 +44,71 @@ import AdminCategories from './admin/pages/AdminCategories';
 import AdminSettings from './admin/pages/AdminSettings';
 import AdminComments from './admin/pages/AdminComments';
 import PostEditor from './admin/components/PostEditor';
+
+
+// ─────────────────────────────────────────────────────────────
+// SEO META UPDATER
+// ─────────────────────────────────────────────────────────────
+
+function SeoMeta({ post }) {
+  React.useEffect(() => {
+    const title = post ? `${post.title} | StoryGrid` : 'StoryGrid | Independent Stories and Ideas';
+    const description = post?.excerpt || 'Independent stories, ideas, and perspectives for a changing world.';
+    document.title = title;
+    const setMeta = (selector, attribute, value) => {
+      let el = document.head.querySelector(selector);
+      if (!el) {
+        el = document.createElement('meta');
+        const attrName = selector.match(/"([^"]+)"/)?.[1] || '';
+        el.setAttribute(attribute, attrName);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', value);
+    };
+    setMeta('meta[name="description"]', 'name', description);
+    setMeta('meta[property="og:title"]', 'property', title);
+    setMeta('meta[property="og:description"]', 'property', description);
+    setMeta('meta[property="og:type"]', 'property', post ? 'article' : 'website');
+    if (post?.featuredImage) setMeta('meta[property="og:image"]', 'property', post.featuredImage);
+    setMeta('meta[name="twitter:card"]', 'name', post?.featuredImage ? 'summary_large_image' : 'summary');
+    setMeta('meta[name="twitter:title"]', 'name', title);
+    setMeta('meta[name="twitter:description"]', 'name', description);
+    if (post?.featuredImage) setMeta('meta[name="twitter:image"]', 'name', post.featuredImage);
+
+    let canonical = document.head.querySelector('link[data-storygrid-canonical]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.dataset.storygridCanonical = 'true';
+      canonical.rel = 'canonical';
+      document.head.appendChild(canonical);
+    }
+    canonical.href = `${window.location.origin}${post?.slug ? `/article/${post.slug}` : window.location.pathname}`;
+
+    const existing = document.head.querySelector('script[data-storygrid-schema]');
+    if (existing) existing.remove();
+    if (post) {
+      const schema = document.createElement('script');
+      schema.type = 'application/ld+json';
+      schema.dataset.storygridSchema = 'true';
+      schema.textContent = JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: post.title,
+        description,
+        image: post.featuredImage ? [post.featuredImage] : undefined,
+        author: { '@type': 'Person', name: post.author || 'StoryGrid Editorial Desk' },
+        datePublished: post.publishedAt,
+        mainEntityOfPage: window.location.href,
+      });
+      document.head.appendChild(schema);
+    }
+    return () => {
+      const schema = document.head.querySelector('script[data-storygrid-schema]');
+      if (schema) schema.remove();
+    };
+  }, [post]);
+  return null;
+}
 
 
 // ─────────────────────────────────────────────────────────────
@@ -550,12 +571,15 @@ function HomePage() {
   );
 }
 
+
 function ArticlePage() {
   const { slug, categorySlug } = useParams();
   const navigate = useNavigate();
   const { publishedPosts = [], categories = [] } = useCms();
   const [searchQuery, setSearchQuery] = useState('');
-  const post = publishedPosts.find((item) => item.slug === slug || item.slug === categorySlug);
+  // Prefer the explicit :slug param; fall back to :categorySlug for /:cat/:slug routes
+  const resolvedSlug = slug || categorySlug;
+  const post = publishedPosts.find((item) => item.slug === resolvedSlug);
 
   if (!post) {
     return <main className="min-h-screen px-6 pt-32 text-center"><h1 className="text-4xl font-black text-white">Story not found</h1><Link to="/" className="mt-5 inline-block text-cyan-300">Return home</Link></main>;
@@ -577,15 +601,16 @@ function ArticlePage() {
 function AdminGuard({ children }) {
   const { isAdmin, authUser, loading } = useCms();
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#050507]">
+        <p className="text-xs font-black uppercase tracking-[0.24em] text-cyan-300">Loading…</p>
+      </div>
+    );
+  }
 
   if (!authUser) {
-    return (
-      <Navigate
-        to="/admin/login"
-        replace
-      />
-    );
+    return <Navigate to="/admin/login" replace />;
   }
 
   if (!isAdmin) return <Navigate to="/" replace />;

@@ -1,7 +1,8 @@
 import React from 'react';
 
 export default function AdSlot({ label = 'Advertisement', variant = 'banner', className = '' }) {
-    const adsEnabled = import.meta.env.VITE_ADS_ENABLED !== 'false';
+    // Ads are opt-in: only shown when VITE_ADS_ENABLED is explicitly set to 'true'
+    const adsEnabled = import.meta.env.VITE_ADS_ENABLED === 'true';
     if (!adsEnabled) return null;
 
     const sizeClass = {

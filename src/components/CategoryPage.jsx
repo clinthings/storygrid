@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useCms } from '../lib/useCms';
 import BlogPostCard from './BlogPostCard';
@@ -25,6 +25,16 @@ export default function CategoryPage({ searchQuery = '' }) {
         return posts.filter((post) => [post.title, post.excerpt, post.content, category?.name].join(' ').toLowerCase().includes(query));
     }, [category?.name, posts, searchQuery]);
     const hero = filtered[0];
+
+    // Update page title for SEO
+    useEffect(() => {
+        if (category) {
+            document.title = `${category.name} | StoryGrid`;
+        } else {
+            document.title = 'StoryGrid | Independent Stories and Ideas';
+        }
+        return () => { document.title = 'StoryGrid | Independent Stories and Ideas'; };
+    }, [category]);
 
     if (selectedPost) {
         const backUrl = category?.slug ? `/${category.slug}` : '/';

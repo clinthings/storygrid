@@ -8,6 +8,9 @@ const CAT_COLORS = {
     Business: { text: '#a78bfa', dot: '#a78bfa' },
     Productivity: { text: '#34d399', dot: '#34d399' },
     Future: { text: '#fbbf24', dot: '#fbbf24' },
+    Sports: { text: '#fb923c', dot: '#fb923c' },
+    Fashion: { text: '#e879f9', dot: '#e879f9' },
+    Entertainment: { text: '#818cf8', dot: '#818cf8' },
 };
 
 const BlogPostCard = ({ post, onClick, featured = false, compact = false }) => {
@@ -24,15 +27,23 @@ const BlogPostCard = ({ post, onClick, featured = false, compact = false }) => {
             className="public-card group relative flex h-full w-full min-w-0 cursor-pointer select-none flex-col overflow-hidden rounded-[22px] border border-white/10 bg-[#09090d] p-2.5 sm:p-3"
         >
             <div className="relative overflow-hidden rounded-[18px] bg-[#111]" style={{ aspectRatio: compact ? '1.85 / 1' : featured ? '16 / 9' : '4 / 3' }}>
-                <Motion.img
-                    src={post.featuredImage || post.imageUrl}
-                    alt={post.imageAlt || post.title}
-                    width="1200"
-                    height="800"
-                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    loading="lazy"
-                    decoding="async"
-                />
+                {(post.featuredImage || post.imageUrl) ? (
+                    <Motion.img
+                        src={post.featuredImage || post.imageUrl}
+                        alt={post.imageAlt || post.title}
+                        width="1200"
+                        height="800"
+                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        loading="lazy"
+                        decoding="async"
+                    />
+                ) : (
+                    <div
+                        className="absolute inset-0"
+                        style={{ background: `linear-gradient(135deg, ${colors.dot}22, #0d0d12)` }}
+                        aria-hidden="true"
+                    />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
             </div>
 

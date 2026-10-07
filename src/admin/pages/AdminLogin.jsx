@@ -3,8 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCms } from '../../lib/useCms';
 import { Zap, Eye, EyeOff, AlertCircle } from 'lucide-react';
-// eslint-disable-next-line no-unused-vars
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 
 export default function AdminLogin() {
     const { login } = useCms();
@@ -37,7 +36,7 @@ export default function AdminLogin() {
     return (
         <div className="min-h-screen flex items-center justify-center px-4"
             style={{ background: '#050507' }}>
-            <motion.div
+            <Motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full max-w-md"
@@ -125,7 +124,7 @@ export default function AdminLogin() {
                         <br />Admin access is managed in Supabase Auth and the profiles table.
                     </p>
                 </div>
-            </motion.div>
+            </Motion.div>
         </div>
     );
 }
